@@ -8,5 +8,44 @@
     "loading": "Volám pipeline…",
     "error": "Něco se pokazilo",
     "language": "Jazyk"
+  },
+  "auth": {
+    "login": "Přihlásit se",
+    "register": "Registrace",
+    "username": "Uživatelské jméno",
+    "email": "E-mail",
+    "password": "Heslo",
+    "confirm_password": "Potvrzení hesla",
+    "no_account": "Nemáte účet? ",
+    "have_account": "Již máte účet? ",
+    "passwords_mismatch": "Hesla se neshodují",
+    "password_too_short": "Heslo musí mít alespoň 8 znaků"
+  },
+  "dashboard": {
+    "title": "Obchodní relace",
+    "create_session": "Nová relace",
+    "empty": "Zatím žádné obchodní relace. Vytvořte první!",
+    "balance": "Zůstatek",
+    "risk": "Úroveň rizika"
+  },
+  "session": {
+    "name": "Název relace",
+    "starting_balance": "Počáteční zůstatek ($)",
+    "risk_low": "Nízké",
+    "risk_medium": "Střední",
+    "risk_high": "Vysoké",
+    "active": "Aktivní",
+    "inactive": "Neaktivní"
+  },
+  "nav": {
+    "logout": "Odhlásit se",
+    "theme": "Přepnout motiv"
+  },
+  "common": {
+    "save": "Uložit",
+    "cancel": "Zrušit",
+    "delete": "Smazat",
+    "confirm": "Potvrdit",
+    "confirm_delete": "Opravdu chcete smazat tuto relaci?"
   }
 }

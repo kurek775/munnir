@@ -8,5 +8,44 @@
     "loading": "Calling the pipeline...",
     "error": "Something went wrong",
     "language": "Language"
+  },
+  "auth": {
+    "login": "Log In",
+    "register": "Register",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "no_account": "Don't have an account? ",
+    "have_account": "Already have an account? ",
+    "passwords_mismatch": "Passwords do not match",
+    "password_too_short": "Password must be at least 8 characters"
+  },
+  "dashboard": {
+    "title": "Trading Sessions",
+    "create_session": "New Session",
+    "empty": "No trading sessions yet. Create your first one!",
+    "balance": "Balance",
+    "risk": "Risk Level"
+  },
+  "session": {
+    "name": "Session Name",
+    "starting_balance": "Starting Balance ($)",
+    "risk_low": "Low",
+    "risk_medium": "Medium",
+    "risk_high": "High",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "nav": {
+    "logout": "Log Out",
+    "theme": "Toggle theme"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "confirm_delete": "Are you sure you want to delete this session?"
   }
 }

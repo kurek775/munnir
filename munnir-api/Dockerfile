@@ -22,6 +22,9 @@ RUN uv venv && \
         "alembic>=1.14" \
         "pydantic-settings>=2.7" \
         "pybind11>=2.13" \
+        "python-jose[cryptography]>=3.3" \
+        "bcrypt>=4.0" \
+        "email-validator>=2.0" \
         "pytest>=8.0" \
         "pytest-asyncio>=0.24" \
         "httpx>=0.28"

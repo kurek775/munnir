@@ -3,34 +3,35 @@
 /*
  * Munnir Brand System
  * -------------------
- * Dark theme with amber accent. Inspired by Muninn — Odin's raven of memory.
- *
- * Palette:
- *   bg-base     #0B0F19   — deepest background
- *   bg-surface  #111827   — cards, panels (gray-900)
- *   bg-elevated #1F2937   — hover states, borders (gray-800)
- *   text-primary #F9FAFB  — headings (gray-50)
- *   text-secondary #9CA3AF — body/labels (gray-400)
- *   accent      #F59E0B   — amber-500, raven's eye, chart lines, CTAs
- *   accent-dim  #D97706   — amber-600, hover/pressed accent
- *   success     #10B981   — emerald-500, positive values
- *   danger      #EF4444   — red-500, errors, negative values
- *   raven       #D1D5DB   — gray-300, the raven outline stroke
+ * Dark/light theme with amber accent. Inspired by Muninn — Odin's raven of memory.
  */
 
 @theme {
-  --color-base: #0B0F19;
-  --color-surface: #111827;
-  --color-elevated: #1F2937;
+  /* Light mode defaults */
+  --color-base: #F9FAFB;
+  --color-surface: #FFFFFF;
+  --color-elevated: #E5E7EB;
   --color-accent: #F59E0B;
   --color-accent-dim: #D97706;
-  --color-raven: #D1D5DB;
+  --color-raven: #374151;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
 }
 
 body {
-  background-color: #0B0F19;
-  color: #F9FAFB;
+  background-color: var(--color-base);
+  color: var(--color-text-primary);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark mode overrides via class on <html> */
+.dark {
+  --color-base: #0B0F19;
+  --color-surface: #111827;
+  --color-elevated: #1F2937;
+  --color-raven: #D1D5DB;
+  --color-text-primary: #F9FAFB;
+  --color-text-secondary: #9CA3AF;
 }

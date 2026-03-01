@@ -7,6 +7,8 @@ services:
       - "8000:8000"
     volumes:
       - ./munnir-api/app:/app/app
+      - ./munnir-api/alembic:/app/alembic
+      - ./munnir-api/tests:/app/tests
       - ./cpp_engine:/app/cpp_engine
       - sqlite-data:/app/data
     environment:

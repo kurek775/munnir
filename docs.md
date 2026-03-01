@@ -58,22 +58,58 @@ The stack is built for modern UI/UX and high-speed execution: Angular 21 (with T
     * Implement the Transloco language switcher (CS/EN) and Tailwind Dark/Light mode.
 * **Deliverable:** A working app where a user can log in and create multiple blank trading sessions.
 
-### Phase 3: The Munnir Agent & Math Engine (C++ / Python)
-* **Goal:** Build the AI agent to fulfill the primary use case.
+### Phase 3a: C++ Math Engine Core
+* **Goal:** Build the computational foundation for trading simulation.
 * **Tasks:**
-    * Integrate LLM APIs to scrape/read geopolitical news.
-    * Build the C++ evaluation engine to handle the math for position sizing, risk adjustment, and rapid execution simulation.
+    * Implement position sizing algorithm in C++ (given balance, risk tolerance, conviction score → position size).
+    * Implement P&L calculation and risk adjustment logic.
+    * Expose all functions to Python via pybind11 bindings.
+    * Write Catch2 unit tests for all C++ math + pytest integration tests calling via pybind11.
     * **Agent Communication Rule:** When the CLI tool/agent documents or explains the C++ trading math, algorithms, or any difficult math topics in the code comments or PRs, it must explain it assuming the reader is not smart. Start with simple analogies and concrete examples. Slowly add the formulas, explain each formula part by part, and then put it all together.
-    * Create the execution loop that updates the session balances based on AI decisions.
-* **Deliverable:** The core simulation loop is active; the AI trades independently across different sessions based on their assigned risk profiles.
+* **Deliverable:** `engine.calculate_position(balance, risk, conviction)` works end-to-end from Python, with full test coverage.
 
-### Phase 4: Drag-and-Drop Dashboard & Charting
-* **Goal:** Make the playground "really cool" and highly interactive.
+### Phase 3b: News Ingestion & AI Analysis
+* **Goal:** Build the data pipeline that feeds the trading engine.
 * **Tasks:**
-    * Implement Angular CDK Drag and Drop to allow users to move active trading sessions around their dashboard as widgets.
-    * Integrate a charting library to graph the performance of multiple sessions overlapping on the same chart (comparing High Risk vs Low Risk AI performance over time).
-    * Build the UI to display the AI's "Justification" for every trade.
-* **Deliverable:** A polished, highly interactive, graphical dashboard.
+    * Integrate LLM APIs for geopolitical news analysis.
+    * Build news scraping/reading pipeline.
+    * Define structured output schema for trade signals (direction, ticker, conviction, reasoning).
+    * Create `MarketNews` model + Alembic migration.
+    * Store scraped news with sentiment scores.
+* **Deliverable:** Given a topic/region, the system produces a structured trade signal with AI reasoning.
+
+### Phase 3c: Execution Loop
+* **Goal:** Wire the AI + engine together into a live simulation loop.
+* **Tasks:**
+    * Create the execution loop that: reads news → generates signals → sizes positions → executes trades → updates balances.
+    * Create `Trade` and `Holding` models + Alembic migrations.
+    * Build API endpoints for trade history per session.
+    * Add background task scheduling (the loop runs periodically for active sessions).
+* **Deliverable:** A session's balance changes over time based on autonomous AI decisions. Trade history is persisted and queryable.
+
+### Phase 4a: Charting & Session History
+* **Goal:** Visualize trading performance.
+* **Tasks:**
+    * Integrate ECharts via ngx-echarts.
+    * Build session performance-over-time chart (balance history line graph).
+    * Build multi-session overlay comparison chart (high risk vs low risk).
+* **Deliverable:** Users can see their session's balance history as interactive charts, with multi-session comparison.
+
+### Phase 4b: Drag-and-Drop Dashboard
+* **Goal:** Make the dashboard interactive and customizable.
+* **Tasks:**
+    * Implement Angular CDK Drag and Drop for session widgets.
+    * Persist widget layout order per user.
+    * Responsive grid layout.
+* **Deliverable:** Users can rearrange their session cards/widgets by dragging, and the layout persists.
+
+### Phase 4c: Trade Justification UI
+* **Goal:** Make AI decisions transparent.
+* **Tasks:**
+    * Build trade history list view per session.
+    * Display AI reasoning/justification for each trade.
+    * Link trades to the news events that triggered them.
+* **Deliverable:** Users can click a session and see every trade the AI made, with full reasoning.
 
 ### Phase 5: Minimum Viable Product (MVP) Release
 * **Goal:** Soft launch of the core product.
