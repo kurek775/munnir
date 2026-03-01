@@ -13,6 +13,9 @@ services:
       - sqlite-data:/app/data
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./data/munnir.db
+      - NEWSAPI_KEY=${NEWSAPI_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - NEWS_SCHEDULER_ENABLED=${NEWS_SCHEDULER_ENABLED:-false}
 
   ui:
     build:

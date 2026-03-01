@@ -4,7 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import get_current_user
 from app.core.database import get_db
 from app.models.user import User
+from app.schemas.trade_signal import AnalyzeResponse, TradeSignalResponse
 from app.schemas.trading_session import SessionCreate, SessionResponse, SessionUpdate
+from app.services.ai_analyst import analyze_session, get_session_signals
 from app.services.sessions import (
     create_trading_session,
     delete_trading_session,
@@ -59,3 +61,21 @@ async def delete_session(
     db: AsyncSession = Depends(get_db),
 ):
     await delete_trading_session(session_id, current_user, db)
+
+
+@router.post("/{session_id}/analyze", response_model=AnalyzeResponse)
+async def analyze(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await analyze_session(session_id, current_user, db)
+
+
+@router.get("/{session_id}/signals", response_model=list[TradeSignalResponse])
+async def signals(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await get_session_signals(session_id, current_user, db)

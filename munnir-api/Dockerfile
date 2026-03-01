@@ -25,9 +25,13 @@ RUN uv venv && \
         "python-jose[cryptography]>=3.3" \
         "bcrypt>=4.0" \
         "email-validator>=2.0" \
+        "httpx>=0.28" \
+        "google-genai>=1.0" \
+        "feedparser>=6.0" \
+        "tenacity>=9.0" \
+        "apscheduler>=3.10" \
         "pytest>=8.0" \
-        "pytest-asyncio>=0.24" \
-        "httpx>=0.28"
+        "pytest-asyncio>=0.24"
 
 # Build C++ engine
 COPY cpp_engine/ cpp_engine/

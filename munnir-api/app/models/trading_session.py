@@ -24,3 +24,6 @@ class TradingSession(Base):
     )
 
     user = relationship("User", back_populates="sessions")
+    trade_signals = relationship(
+        "TradeSignal", back_populates="session", cascade="all, delete-orphan"
+    )
