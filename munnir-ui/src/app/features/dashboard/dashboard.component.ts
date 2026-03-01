@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { SessionService } from '../../core/services/session.service';
 import { SessionResponse } from '../../core/models/session.model';
@@ -8,7 +9,7 @@ import { SessionResponse } from '../../core/models/session.model';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslocoModule],
+  imports: [DecimalPipe, FormsModule, RouterLink, TranslocoModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="max-w-4xl mx-auto p-6" *transloco="let t">
@@ -92,7 +93,7 @@ import { SessionResponse } from '../../core/models/session.model';
       } @else {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           @for (s of sessions(); track s.id) {
-            <div class="bg-surface border border-elevated rounded-lg p-5 hover:border-accent/30 transition-colors">
+            <a [routerLink]="['/sessions', s.id]" class="block bg-surface border border-elevated rounded-lg p-5 hover:border-accent/30 transition-colors cursor-pointer">
               <div class="flex items-start justify-between mb-3">
                 <h3 class="font-semibold text-text-primary">{{ s.session_name }}</h3>
                 <div class="flex items-center gap-2">
@@ -102,7 +103,7 @@ import { SessionResponse } from '../../core/models/session.model';
                     <span class="px-2 py-0.5 text-xs rounded-full bg-muted-dim text-muted">{{ t('session.inactive') }}</span>
                   }
                   <button
-                    (click)="deleteSession(s.id)"
+                    (click)="deleteSession(s.id); $event.preventDefault(); $event.stopPropagation()"
                     class="text-danger/60 hover:text-danger text-sm transition-colors"
                     [title]="t('common.delete')"
                   >&#x2715;</button>
@@ -121,7 +122,7 @@ import { SessionResponse } from '../../core/models/session.model';
                   >{{ t('session.risk_' + s.risk_tolerance) }}</span>
                 </div>
               </div>
-            </div>
+            </a>
           }
         </div>
       }
