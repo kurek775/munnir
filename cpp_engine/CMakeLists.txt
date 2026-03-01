@@ -8,6 +8,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # ── Core library (pure C++, no Python dependency) ──────────────────────
 add_library(munnir_core STATIC
     src/math/hello.cpp
+    src/math/risk.cpp
+    src/math/pnl.cpp
+    src/math/position.cpp
 )
 target_include_directories(munnir_core PUBLIC include)
 
@@ -37,7 +40,12 @@ if(BUILD_TESTS)
     )
     FetchContent_MakeAvailable(Catch2)
 
-    add_executable(munnir_tests tests/test_hello.cpp)
+    add_executable(munnir_tests
+        tests/test_hello.cpp
+        tests/test_risk.cpp
+        tests/test_pnl.cpp
+        tests/test_position.cpp
+    )
     target_link_libraries(munnir_tests PRIVATE munnir_core Catch2::Catch2WithMain)
 
     include(CTest)

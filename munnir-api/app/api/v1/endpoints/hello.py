@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,7 +13,7 @@ router = APIRouter()
 
 @router.get("/hello", response_model=HelloResponse)
 async def hello(db: AsyncSession = Depends(get_db)):
-    result = add(40, 2)
+    result = await asyncio.to_thread(add, 40, 2)
     msg = HelloMessage(message="Hello from Munnir!", cpp_result=result)
     db.add(msg)
     await db.commit()

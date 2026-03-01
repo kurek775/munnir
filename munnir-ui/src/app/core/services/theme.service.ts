@@ -1,9 +1,9 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { ApiService } from './api.service';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
-  private http = inject(HttpClient);
+  private api = inject(ApiService);
 
   theme = signal<'dark' | 'light'>(this.loadTheme());
 
@@ -12,7 +12,7 @@ export class ThemeService {
     this.theme.set(next);
     localStorage.setItem('theme', next);
     this.applyTheme(next);
-    this.http.patch('/api/v1/users/me', { preferred_theme: next }).subscribe();
+    this.api.patch('/api/v1/users/me', { preferred_theme: next }).subscribe();
   }
 
   init() {

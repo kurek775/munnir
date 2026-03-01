@@ -1,4 +1,8 @@
 {
+  "app": {
+    "logo_alt": "Munnir",
+    "brand_name": "Munnir"
+  },
   "hello": {
     "title": "Munnir Test Pipeline",
     "subtitle": "Angular -> FastAPI -> C++ -> SQLite",
@@ -19,7 +23,9 @@
     "no_account": "Nemáte účet? ",
     "have_account": "Již máte účet? ",
     "passwords_mismatch": "Hesla se neshodují",
-    "password_too_short": "Heslo musí mít alespoň 8 znaků"
+    "password_too_short": "Heslo musí mít alespoň 8 znaků",
+    "login_failed": "Přihlášení se nezdařilo",
+    "register_failed": "Registrace se nezdařila"
   },
   "dashboard": {
     "title": "Obchodní relace",

@@ -2,7 +2,8 @@ import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@ang
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { SessionService, SessionResponse } from '../../core/services/session.service';
+import { SessionService } from '../../core/services/session.service';
+import { SessionResponse } from '../../core/models/session.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,7 +16,7 @@ import { SessionService, SessionResponse } from '../../core/services/session.ser
         <h1 class="text-2xl font-bold text-text-primary">{{ t('dashboard.title') }}</h1>
         <button
           (click)="showForm.set(!showForm())"
-          class="px-4 py-2 bg-accent hover:bg-accent-dim text-gray-900 font-medium rounded-lg text-sm transition-colors"
+          class="px-4 py-2 bg-accent hover:bg-accent-dim text-on-accent font-medium rounded-lg text-sm transition-colors"
         >
           {{ t('dashboard.create_session') }}
         </button>
@@ -73,7 +74,7 @@ import { SessionService, SessionResponse } from '../../core/services/session.ser
               </button>
               <button
                 type="submit"
-                class="px-4 py-2 bg-accent hover:bg-accent-dim text-gray-900 font-medium rounded-lg text-sm transition-colors"
+                class="px-4 py-2 bg-accent hover:bg-accent-dim text-on-accent font-medium rounded-lg text-sm transition-colors"
               >
                 {{ t('common.save') }}
               </button>
@@ -96,13 +97,13 @@ import { SessionService, SessionResponse } from '../../core/services/session.ser
                 <h3 class="font-semibold text-text-primary">{{ s.session_name }}</h3>
                 <div class="flex items-center gap-2">
                   @if (s.is_active) {
-                    <span class="px-2 py-0.5 text-xs rounded-full bg-emerald-500/20 text-emerald-400">{{ t('session.active') }}</span>
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-success-dim text-success">{{ t('session.active') }}</span>
                   } @else {
-                    <span class="px-2 py-0.5 text-xs rounded-full bg-gray-500/20 text-gray-400">{{ t('session.inactive') }}</span>
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-muted-dim text-muted">{{ t('session.inactive') }}</span>
                   }
                   <button
                     (click)="deleteSession(s.id)"
-                    class="text-red-400/60 hover:text-red-400 text-sm transition-colors"
+                    class="text-danger/60 hover:text-danger text-sm transition-colors"
                     [title]="t('common.delete')"
                   >&#x2715;</button>
                 </div>
@@ -174,10 +175,10 @@ export class DashboardComponent implements OnInit {
 
   riskClass(risk: string): string {
     switch (risk) {
-      case 'low': return 'bg-emerald-500/20 text-emerald-400';
-      case 'medium': return 'bg-amber-500/20 text-amber-400';
-      case 'high': return 'bg-red-500/20 text-red-400';
-      default: return 'bg-gray-500/20 text-gray-400';
+      case 'low': return 'bg-success-dim text-success';
+      case 'medium': return 'bg-warning-dim text-warning';
+      case 'high': return 'bg-danger-dim text-danger';
+      default: return 'bg-muted-dim text-muted';
     }
   }
 }

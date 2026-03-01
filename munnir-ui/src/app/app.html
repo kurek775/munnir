@@ -3,8 +3,8 @@
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <!-- Brand -->
       <div class="flex items-center gap-3">
-        <img src="assets/logo.svg" alt="Munnir" class="h-7" />
-        <span class="font-semibold text-text-primary text-sm tracking-wide">Munnir</span>
+        <img src="assets/logo.svg" [attr.alt]="t('app.logo_alt')" class="h-7" />
+        <span class="font-semibold text-text-primary text-sm tracking-wide">{{ t('app.brand_name') }}</span>
       </div>
 
       <!-- Controls -->
@@ -14,14 +14,14 @@
           <button
             class="px-2 py-1 text-xs font-medium rounded transition-colors"
             [class]="getActiveLang() === 'en'
-              ? 'bg-accent text-gray-900'
+              ? 'bg-accent text-on-accent'
               : 'bg-elevated text-text-secondary hover:text-text-primary'"
             (click)="switchLang('en')"
           >EN</button>
           <button
             class="px-2 py-1 text-xs font-medium rounded transition-colors"
             [class]="getActiveLang() === 'cs'
-              ? 'bg-accent text-gray-900'
+              ? 'bg-accent text-on-accent'
               : 'bg-elevated text-text-secondary hover:text-text-primary'"
             (click)="switchLang('cs')"
           >CS</button>

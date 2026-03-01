@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from './core/services/auth.service';
@@ -9,6 +9,7 @@ import { ThemeService } from './core/services/theme.service';
   imports: [RouterOutlet, TranslocoModule],
   templateUrl: './app.html',
   styleUrl: './app.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App implements OnInit {
   protected auth = inject(AuthService);

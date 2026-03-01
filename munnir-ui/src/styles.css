@@ -16,6 +16,19 @@
   --color-raven: #374151;
   --color-text-primary: #111827;
   --color-text-secondary: #6B7280;
+
+  /* Semantic status colors */
+  --color-success: #10B981;
+  --color-success-dim: rgba(16, 185, 129, 0.2);
+  --color-warning: #F59E0B;
+  --color-warning-dim: rgba(245, 158, 11, 0.2);
+  --color-danger: #EF4444;
+  --color-danger-dim: rgba(239, 68, 68, 0.2);
+  --color-muted: #6B7280;
+  --color-muted-dim: rgba(107, 114, 128, 0.2);
+
+  /* Button text on accent backgrounds */
+  --color-on-accent: #111827;
 }
 
 body {
@@ -34,4 +47,10 @@ body {
   --color-raven: #D1D5DB;
   --color-text-primary: #F9FAFB;
   --color-text-secondary: #9CA3AF;
+
+  --color-success: #34D399;
+  --color-warning: #FBBF24;
+  --color-danger: #F87171;
+  --color-muted: #9CA3AF;
+  --color-on-accent: #111827;
 }
