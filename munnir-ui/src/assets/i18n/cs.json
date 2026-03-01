@@ -98,6 +98,8 @@
     "trade_fee": "Poplatek",
     "trade_total": "Celkem",
     "trade_pnl": "Z/Z",
-    "trades_empty": "Zatím žádné obchody."
+    "trades_empty": "Zatím žádné obchody.",
+    "trade_why_tooltip": "Zobrazit zdůvodnění AI",
+    "trade_manual_label": "Ruční uzavření"
   }
 }

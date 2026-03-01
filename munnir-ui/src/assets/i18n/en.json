@@ -98,6 +98,8 @@
     "trade_fee": "Fee",
     "trade_total": "Total",
     "trade_pnl": "P&L",
-    "trades_empty": "No trades recorded yet."
+    "trades_empty": "No trades recorded yet.",
+    "trade_why_tooltip": "View AI justification",
+    "trade_manual_label": "Manual close"
   }
 }

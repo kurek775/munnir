@@ -187,14 +187,38 @@ echarts.use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, Mark
                         <summary class="text-xs text-text-secondary cursor-pointer hover:text-text-primary">
                           {{ t('detail.signal_history') }} ({{ historySignals().length }})
                         </summary>
-                        <div class="mt-2 space-y-2">
+                        <div class="mt-2 space-y-3">
                           @for (sig of historySignals(); track sig.id) {
-                            <div class="flex items-center gap-2 text-xs border border-elevated rounded p-2 opacity-70">
-                              <span class="px-2 py-0.5 rounded-full" [class]="actionClass(sig.action)">{{ sig.action }}</span>
-                              <span class="font-mono text-text-primary">{{ sig.asset }}</span>
-                              <span class="ml-auto px-2 py-0.5 rounded-full" [class]="sig.action_taken === 'executed' ? 'bg-success-dim text-success' : 'bg-muted-dim text-muted'">
-                                {{ sig.action_taken === 'executed' ? t('detail.signal_executed') : t('detail.signal_skipped') }}
-                              </span>
+                            <div class="border border-elevated rounded-lg p-3 opacity-80 hover:opacity-100 transition-opacity">
+                              <!-- Header: action badge + asset + date + status -->
+                              <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full" [class]="actionClass(sig.action)">{{ sig.action }}</span>
+                                <span class="font-mono font-semibold text-text-primary text-sm">{{ sig.asset }}</span>
+                                <span class="text-xs text-text-secondary font-mono">{{ sig.created_at | date:'short' }}</span>
+                                <span class="ml-auto px-2 py-0.5 text-xs rounded-full" [class]="sig.action_taken === 'executed' ? 'bg-success-dim text-success' : 'bg-muted-dim text-muted'">
+                                  {{ sig.action_taken === 'executed' ? t('detail.signal_executed') : t('detail.signal_skipped') }}
+                                </span>
+                              </div>
+                              <!-- Stats: conviction bar + risk + model -->
+                              <div class="flex flex-wrap items-center gap-4 text-xs mb-2">
+                                <div class="flex items-center gap-2">
+                                  <span class="text-text-secondary">{{ t('detail.signal_conviction') }}:</span>
+                                  <div class="w-20 h-1.5 bg-elevated rounded-full overflow-hidden">
+                                    <div class="h-full bg-accent rounded-full" [style.width.%]="sig.conviction"></div>
+                                  </div>
+                                  <span class="font-mono text-text-primary">{{ sig.conviction | number:'1.0-0' }}%</span>
+                                </div>
+                                <div>
+                                  <span class="text-text-secondary">{{ t('detail.signal_risk') }}: </span>
+                                  <span class="font-mono font-semibold" [class]="riskScoreClass(sig.risk_score)">{{ sig.risk_score | number:'1.1-1' }}</span>
+                                </div>
+                                <div>
+                                  <span class="text-text-secondary">{{ t('detail.signal_model') }}: </span>
+                                  <span class="font-mono text-text-primary">{{ sig.model_used }}</span>
+                                </div>
+                              </div>
+                              <!-- Reasoning -->
+                              <p class="text-xs text-text-secondary leading-relaxed line-clamp-3">{{ sig.reasoning }}</p>
                             </div>
                           }
                         </div>
@@ -334,6 +358,7 @@ echarts.use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, Mark
                               <th class="pb-2 pr-3 text-right">{{ t('detail.trade_fee') }}</th>
                               <th class="pb-2 pr-3 text-right">{{ t('detail.trade_total') }}</th>
                               <th class="pb-2 text-right">{{ t('detail.trade_pnl') }}</th>
+                              <th class="pb-2"></th>
                             </tr>
                           </thead>
                           <tbody>
@@ -355,7 +380,52 @@ echarts.use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, Mark
                                 <td class="py-2 text-right font-mono" [class]="tr.realized_pnl >= 0 ? 'text-success' : 'text-danger'">
                                   {{ tr.realized_pnl !== 0 ? (tr.realized_pnl >= 0 ? '+' : '') : '' }}\${{ tr.realized_pnl | number:'1.2-2' }}
                                 </td>
+                                <td class="py-2 pl-2 text-center">
+                                  @if (tr.signal_id !== null) {
+                                    <button
+                                      type="button"
+                                      (click)="toggleTradeExpanded(tr.id)"
+                                      class="text-accent hover:text-accent-dim transition-colors"
+                                      [title]="t('detail.trade_why_tooltip')"
+                                    >
+                                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/>
+                                      </svg>
+                                    </button>
+                                  } @else {
+                                    <span class="text-muted" [title]="t('detail.trade_manual_label')">—</span>
+                                  }
+                                </td>
                               </tr>
+                              @if (tr.signal_id !== null && isTradeExpanded(tr.id)) {
+                                <tr>
+                                  <td colspan="11" class="px-4 py-3 bg-surface-dim border-b border-elevated/50">
+                                    @let sig = signalMap().get(tr.signal_id!);
+                                    @if (sig) {
+                                      <div class="space-y-2">
+                                        <div class="flex flex-wrap items-center gap-4 text-xs">
+                                          <div class="flex items-center gap-2">
+                                            <span class="text-text-secondary">{{ t('detail.signal_conviction') }}:</span>
+                                            <div class="w-24 h-2 bg-elevated rounded-full overflow-hidden">
+                                              <div class="h-full bg-accent rounded-full" [style.width.%]="sig.conviction"></div>
+                                            </div>
+                                            <span class="font-mono text-text-primary">{{ sig.conviction | number:'1.0-0' }}%</span>
+                                          </div>
+                                          <div>
+                                            <span class="text-text-secondary">{{ t('detail.signal_risk') }}: </span>
+                                            <span class="font-mono font-semibold" [class]="riskScoreClass(sig.risk_score)">{{ sig.risk_score | number:'1.1-1' }}</span>
+                                          </div>
+                                          <div>
+                                            <span class="text-text-secondary">{{ t('detail.signal_model') }}: </span>
+                                            <span class="font-mono text-text-primary">{{ sig.model_used }}</span>
+                                          </div>
+                                        </div>
+                                        <p class="text-xs text-text-secondary leading-relaxed">{{ sig.reasoning }}</p>
+                                      </div>
+                                    }
+                                  </td>
+                                </tr>
+                              }
                             }
                           </tbody>
                         </table>
@@ -404,6 +474,28 @@ export class SessionDetailComponent implements OnInit {
   pendingSignals = computed(() => this.signals().filter(s => s.action_taken === 'pending'));
   historySignals = computed(() => this.signals().filter(s => s.action_taken !== 'pending'));
   sortedTrades = computed(() => [...this.trades()].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+  signalMap = computed(() => {
+    const m = new Map<number, TradeSignalResponse>();
+    for (const s of this.signals()) m.set(s.id, s);
+    return m;
+  });
+  expandedTradeIds = signal(new Set<number>());
+
+  toggleTradeExpanded(id: number) {
+    const next = new Set(this.expandedTradeIds());
+    next.has(id) ? next.delete(id) : next.add(id);
+    this.expandedTradeIds.set(next);
+  }
+
+  isTradeExpanded(id: number): boolean {
+    return this.expandedTradeIds().has(id);
+  }
+
+  riskScoreClass(score: number): string {
+    if (score < 4) return 'text-success';
+    if (score <= 6) return 'text-warning';
+    return 'text-danger';
+  }
 
   chartOptions = computed<EChartsCoreOption>(() => {
     const isDark = this.themeService.theme() === 'dark';
