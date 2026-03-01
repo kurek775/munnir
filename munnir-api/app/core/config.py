@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     NEWS_SCHEDULER_ENABLED: bool = False
     NEWS_SCHEDULER_INTERVAL_MINUTES: int = 30
 
+    # Trade execution
+    PRICE_API_PROVIDER: str = "yfinance"
+    TRADE_FEE_CENTS: int = 100  # $1.00 flat fee
+    SLIPPAGE_ENABLED: bool = True
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 

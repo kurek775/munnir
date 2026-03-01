@@ -30,6 +30,7 @@ RUN uv venv && \
         "feedparser>=6.0" \
         "tenacity>=9.0" \
         "apscheduler>=3.10" \
+        "yfinance>=0.2" \
         "pytest>=8.0" \
         "pytest-asyncio>=0.24"
 

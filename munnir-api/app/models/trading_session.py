@@ -27,3 +27,9 @@ class TradingSession(Base):
     trade_signals = relationship(
         "TradeSignal", back_populates="session", cascade="all, delete-orphan"
     )
+    trades = relationship(
+        "Trade", back_populates="session", cascade="all, delete-orphan"
+    )
+    positions = relationship(
+        "Position", back_populates="session", cascade="all, delete-orphan"
+    )

@@ -36,3 +36,4 @@ class TradeSignal(Base):
 
     session = relationship("TradingSession", back_populates="trade_signals")
     article = relationship("NewsArticle", back_populates="trade_signals")
+    trade = relationship("Trade", back_populates="signal", uselist=False)
