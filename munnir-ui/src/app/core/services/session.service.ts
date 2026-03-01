@@ -14,7 +14,7 @@ export class SessionService {
     return this.api.post<SessionResponse>('/api/v1/sessions', data);
   }
 
-  updateSession(id: number, data: Partial<SessionCreate & { is_active: boolean }>) {
+  updateSession(id: number, data: Partial<SessionCreate & { is_active: boolean; auto_pilot: boolean }>) {
     return this.api.patch<SessionResponse>(`/api/v1/sessions/${id}`, data);
   }
 

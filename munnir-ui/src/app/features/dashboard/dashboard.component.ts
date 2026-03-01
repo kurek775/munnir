@@ -87,6 +87,39 @@ import { SessionResponse } from '../../core/models/session.model';
         </div>
       }
 
+      <!-- Portfolio Stats Banner -->
+      @if (sessions().length > 0) {
+        @let stats = portfolioStats();
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="bg-surface border border-elevated rounded-lg p-4">
+            <div class="text-xs text-text-secondary mb-1">{{ t('dashboard.stats.total_balance') }}</div>
+            <div class="text-lg font-mono font-semibold text-accent">\${{ stats.totalCurrent | number:'1.2-2' }}</div>
+          </div>
+          <div class="bg-surface border border-elevated rounded-lg p-4">
+            <div class="text-xs text-text-secondary mb-1">{{ t('dashboard.stats.total_pnl') }}</div>
+            <div class="text-lg font-mono font-semibold" [class]="stats.totalPnl >= 0 ? 'text-success' : 'text-danger'">
+              {{ stats.totalPnl >= 0 ? '+' : '' }}\${{ stats.totalPnl | number:'1.2-2' }}
+              <span class="text-xs ml-1">({{ stats.totalPnl >= 0 ? '+' : '' }}{{ stats.totalPnlPct | number:'1.2-2' }}%)</span>
+            </div>
+          </div>
+          <div class="bg-surface border border-elevated rounded-lg p-4">
+            <div class="text-xs text-text-secondary mb-1">{{ t('dashboard.stats.active_sessions') }}</div>
+            <div class="text-lg font-mono font-semibold text-text-primary">{{ stats.activeCount }} / {{ stats.total }}</div>
+          </div>
+          <div class="bg-surface border border-elevated rounded-lg p-4">
+            <div class="text-xs text-text-secondary mb-1">{{ t('dashboard.stats.performers') }}</div>
+            <div class="text-xs space-y-1">
+              @if (stats.best) {
+                <div class="text-success font-mono truncate">{{ stats.best.session_name }} ({{ stats.bestPnlPct >= 0 ? '+' : '' }}{{ stats.bestPnlPct | number:'1.1-1' }}%)</div>
+              }
+              @if (stats.worst) {
+                <div class="text-danger font-mono truncate">{{ stats.worst.session_name }} ({{ stats.worstPnlPct >= 0 ? '+' : '' }}{{ stats.worstPnlPct | number:'1.1-1' }}%)</div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
       <!-- Session cards -->
       @if (sessions().length === 0) {
         <div class="text-center py-16">
@@ -161,6 +194,35 @@ export class DashboardComponent implements OnInit {
   newName = '';
   newBalance = 10000;
   newRisk = 'medium';
+
+  portfolioStats = computed(() => {
+    const all = this.sessions();
+    const totalCurrent = all.reduce((sum, s) => sum + s.current_balance, 0);
+    const totalStarting = all.reduce((sum, s) => sum + s.starting_balance, 0);
+    const totalPnl = totalCurrent - totalStarting;
+    const totalPnlPct = totalStarting > 0 ? (totalPnl / totalStarting) * 100 : 0;
+    const activeCount = all.filter(s => s.is_active).length;
+
+    let best: SessionResponse | null = null;
+    let worst: SessionResponse | null = null;
+    let bestPnlPct = -Infinity;
+    let worstPnlPct = Infinity;
+
+    for (const s of all) {
+      const pct = s.starting_balance > 0
+        ? ((s.current_balance - s.starting_balance) / s.starting_balance) * 100
+        : 0;
+      if (pct > bestPnlPct) { bestPnlPct = pct; best = s; }
+      if (pct < worstPnlPct) { worstPnlPct = pct; worst = s; }
+    }
+
+    return {
+      totalCurrent, totalPnl, totalPnlPct, activeCount,
+      total: all.length, best, worst,
+      bestPnlPct: best ? bestPnlPct : 0,
+      worstPnlPct: worst ? worstPnlPct : 0,
+    };
+  });
 
   orderedSessions = computed(() => {
     const all = this.sessions();

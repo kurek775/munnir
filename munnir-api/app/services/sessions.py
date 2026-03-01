@@ -59,6 +59,8 @@ async def update_trading_session(
         session.risk_tolerance = data.risk_tolerance
     if data.is_active is not None:
         session.is_active = data.is_active
+    if data.auto_pilot is not None:
+        session.auto_pilot = data.auto_pilot
 
     await db.commit()
     await db.refresh(session)

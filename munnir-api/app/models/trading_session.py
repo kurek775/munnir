@@ -16,6 +16,10 @@ class TradingSession(Base):
     current_balance: Mapped[int] = mapped_column(Integer, nullable=False)
     risk_tolerance: Mapped[str] = mapped_column(String, nullable=False, default="medium")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    auto_pilot: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    last_auto_cycle_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

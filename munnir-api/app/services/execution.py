@@ -120,6 +120,65 @@ async def execute_signal(
         )
 
 
+async def execute_signal_internal(
+    session_id: int, signal_id: int, db: AsyncSession
+) -> dict | None:
+    """Execute a trade signal without user ownership check (for auto-pilot).
+
+    HOLD signals are auto-skipped. On execution failure, the signal is auto-skipped
+    to prevent perpetually pending signals.
+    """
+    result = await db.execute(
+        select(TradingSession).where(TradingSession.id == session_id)
+    )
+    session = result.scalar_one_or_none()
+    if not session:
+        logger.warning("execute_signal_internal: session %d not found", session_id)
+        return None
+
+    signal = await _get_signal(signal_id, session_id, db)
+
+    if signal.action_taken != "pending":
+        return None
+
+    # HOLD → auto-skip
+    if signal.action == "HOLD":
+        signal.action_taken = "skipped"
+        await db.commit()
+        return {"type": "hold", "signal_id": signal.id, "action_taken": "skipped"}
+
+    fee_cents = settings.TRADE_FEE_CENTS
+    tolerance = _tolerance_enum(session.risk_tolerance)
+
+    try:
+        market_price_cents = await get_price_cents(signal.asset)
+        slippage_result = apply_slippage(
+            market_price_cents, signal.action, session.risk_tolerance, settings.SLIPPAGE_ENABLED
+        )
+        exec_price = slippage_result.execution_price_cents
+
+        if signal.action == "BUY":
+            return await _execute_buy(
+                session, signal, market_price_cents, exec_price,
+                slippage_result.factor, fee_cents, tolerance, db,
+            )
+        elif signal.action == "SELL":
+            return await _execute_sell(
+                session, signal, market_price_cents, exec_price,
+                slippage_result.factor, fee_cents, db,
+            )
+    except HTTPException as exc:
+        logger.warning(
+            "Auto-pilot execution failed for signal %d: %s — auto-skipping",
+            signal_id, exc.detail,
+        )
+        signal.action_taken = "skipped"
+        await db.commit()
+        return {"type": "skipped", "signal_id": signal.id, "reason": exc.detail}
+
+    return None
+
+
 async def _execute_buy(
     session: TradingSession,
     signal: TradeSignal,

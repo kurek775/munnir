@@ -5,6 +5,7 @@ export interface SessionResponse {
   current_balance: number;
   risk_tolerance: string;
   is_active: boolean;
+  auto_pilot: boolean;
   created_at: string;
   updated_at: string;
 }

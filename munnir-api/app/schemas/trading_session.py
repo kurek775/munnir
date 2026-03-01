@@ -20,6 +20,7 @@ class SessionUpdate(BaseModel):
     session_name: str | None = None
     risk_tolerance: str | None = None
     is_active: bool | None = None
+    auto_pilot: bool | None = None
 
     @field_validator("risk_tolerance")
     @classmethod
@@ -36,6 +37,7 @@ class SessionResponse(BaseModel):
     current_balance: float
     risk_tolerance: str
     is_active: bool
+    auto_pilot: bool
     created_at: datetime
     updated_at: datetime
 

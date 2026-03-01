@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import v1_router
 from app.core.config import settings
-from app.core.database import Base, engine
+from app.core.database import Base, engine, run_migrations
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +16,7 @@ async def lifespan(app: FastAPI):
     # Create tables on startup (Phase 1 convenience — Alembic used later)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    await run_migrations(engine)
 
     # Start optional news scheduler
     scheduler = None
@@ -25,6 +26,8 @@ async def lifespan(app: FastAPI):
         scheduler = create_news_scheduler()
         scheduler.start()
         logger.info("News scheduler started (interval: %dm)", settings.NEWS_SCHEDULER_INTERVAL_MINUTES)
+        if settings.AUTOPILOT_ENABLED:
+            logger.info("Auto-pilot job registered (interval: %dm)", settings.AUTOPILOT_INTERVAL_MINUTES)
 
     yield
 

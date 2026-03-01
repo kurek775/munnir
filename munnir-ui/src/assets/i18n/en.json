@@ -32,7 +32,13 @@
     "create_session": "New Session",
     "empty": "No trading sessions yet. Create your first one!",
     "balance": "Balance",
-    "risk": "Risk Level"
+    "risk": "Risk Level",
+    "stats": {
+      "total_balance": "Portfolio Balance",
+      "total_pnl": "Total P&L",
+      "active_sessions": "Active Sessions",
+      "performers": "Best / Worst"
+    }
   },
   "session": {
     "name": "Session Name",
@@ -100,6 +106,9 @@
     "trade_pnl": "P&L",
     "trades_empty": "No trades recorded yet.",
     "trade_why_tooltip": "View AI justification",
-    "trade_manual_label": "Manual close"
+    "trade_manual_label": "Manual close",
+    "auto_pilot_label": "Auto-Pilot",
+    "auto_pilot_on": "Auto-Pilot enabled — AI trades automatically",
+    "auto_pilot_off": "Auto-Pilot disabled"
   }
 }

@@ -10,6 +10,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import type { EChartsCoreOption } from 'echarts/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ExecutionService } from '../../core/services/execution.service';
+import { SessionService } from '../../core/services/session.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { WidgetOrderService, type WidgetPanelId } from '../../core/services/widget-order.service';
 import { SessionResponse } from '../../core/models/session.model';
@@ -46,7 +47,33 @@ echarts.use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, Mark
           } @else {
             <span class="px-2 py-0.5 text-xs rounded-full bg-muted-dim text-muted">{{ t('session.inactive') }}</span>
           }
+          <!-- Auto-pilot toggle -->
+          <div class="ml-auto flex items-center gap-2">
+            <span class="text-xs text-text-secondary">{{ t('detail.auto_pilot_label') }}</span>
+            <button
+              type="button"
+              (click)="toggleAutoPilot()"
+              [disabled]="autoPilotPending()"
+              class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50"
+              [class]="session()!.auto_pilot ? 'bg-success' : 'bg-elevated'"
+            >
+              @if (autoPilotPending()) {
+                <span class="absolute inset-0 flex items-center justify-center">
+                  <span class="w-3 h-3 border-2 border-text-secondary border-t-transparent rounded-full animate-spin"></span>
+                </span>
+              }
+              <span
+                class="inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform"
+                [class]="session()!.auto_pilot ? 'translate-x-4.5' : 'translate-x-0.5'"
+              ></span>
+            </button>
+          </div>
         </div>
+        @if (session()!.auto_pilot) {
+          <div class="mb-4 px-3 py-2 rounded-lg bg-success-dim text-success text-xs">
+            {{ t('detail.auto_pilot_on') }}
+          </div>
+        }
 
         <!-- Stats row -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -444,6 +471,7 @@ echarts.use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, Mark
 export class SessionDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private exec = inject(ExecutionService);
+  private sessionService = inject(SessionService);
   private themeService = inject(ThemeService);
   private widgetOrder = inject(WidgetOrderService);
 
@@ -455,6 +483,7 @@ export class SessionDetailComponent implements OnInit {
   analyzing = signal(false);
   executing = signal(false);
   closingPositionId = signal<number | null>(null);
+  autoPilotPending = signal(false);
   panelOrder = signal<WidgetPanelId[]>(['chart', 'signals', 'positions', 'trades']);
 
   private sessionId = 0;
@@ -637,6 +666,19 @@ export class SessionDetailComponent implements OnInit {
         this.closingPositionId.set(null);
       },
       error: () => this.closingPositionId.set(null),
+    });
+  }
+
+  toggleAutoPilot() {
+    const s = this.session();
+    if (!s) return;
+    this.autoPilotPending.set(true);
+    this.sessionService.updateSession(s.id, { auto_pilot: !s.auto_pilot }).subscribe({
+      next: (updated) => {
+        this.session.set(updated);
+        this.autoPilotPending.set(false);
+      },
+      error: () => this.autoPilotPending.set(false),
     });
   }
 

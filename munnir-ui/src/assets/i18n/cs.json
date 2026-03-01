@@ -32,7 +32,13 @@
     "create_session": "Nová relace",
     "empty": "Zatím žádné obchodní relace. Vytvořte první!",
     "balance": "Zůstatek",
-    "risk": "Úroveň rizika"
+    "risk": "Úroveň rizika",
+    "stats": {
+      "total_balance": "Celkový zůstatek",
+      "total_pnl": "Celkový Z/Z",
+      "active_sessions": "Aktivní relace",
+      "performers": "Nejlepší / Nejhorší"
+    }
   },
   "session": {
     "name": "Název relace",
@@ -100,6 +106,9 @@
     "trade_pnl": "Z/Z",
     "trades_empty": "Zatím žádné obchody.",
     "trade_why_tooltip": "Zobrazit zdůvodnění AI",
-    "trade_manual_label": "Ruční uzavření"
+    "trade_manual_label": "Ruční uzavření",
+    "auto_pilot_label": "Autopilot",
+    "auto_pilot_on": "Autopilot zapnut — AI obchoduje automaticky",
+    "auto_pilot_off": "Autopilot vypnut"
   }
 }
