@@ -52,7 +52,8 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "confirm": "Confirm",
-    "confirm_delete": "Are you sure you want to delete this session?"
+    "confirm_delete": "Are you sure you want to delete this session?",
+    "drag_handle": "Drag to reorder"
   },
   "detail": {
     "back": "Back to Sessions",

@@ -8,8 +8,10 @@ import { LineChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent, DataZoomComponent, MarkLineComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import type { EChartsCoreOption } from 'echarts/core';
+import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ExecutionService } from '../../core/services/execution.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { WidgetOrderService, type WidgetPanelId } from '../../core/services/widget-order.service';
 import { SessionResponse } from '../../core/models/session.model';
 import { TradeResponse } from '../../core/models/trade.model';
 import { PositionResponse } from '../../core/models/position.model';
@@ -20,7 +22,7 @@ echarts.use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, Mark
 @Component({
   selector: 'app-session-detail',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, PercentPipe, RouterLink, TranslocoModule, NgxEchartsDirective],
+  imports: [DecimalPipe, DatePipe, PercentPipe, RouterLink, TranslocoModule, NgxEchartsDirective, CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder],
   providers: [provideEchartsCore({ echarts })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -72,222 +74,296 @@ echarts.use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, Mark
           </div>
         </div>
 
-        <!-- Balance chart -->
-        <div class="bg-surface border border-elevated rounded-lg p-5 mb-6">
-          <h2 class="text-sm font-semibold text-text-primary mb-3">{{ t('detail.chart_title') }}</h2>
-          @if (trades().length === 0) {
-            <div class="flex items-center justify-center h-[320px] text-text-secondary text-sm">
-              {{ t('detail.chart_empty') }}
-            </div>
-          } @else {
-            <div echarts [options]="chartOptions()" class="h-[320px]"></div>
-          }
-        </div>
-
-        <!-- AI Signals -->
-        <div class="bg-surface border border-elevated rounded-lg p-5 mb-6">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-sm font-semibold text-text-primary">{{ t('detail.signals_title') }}</h2>
-            <button
-              (click)="analyzeNews()"
-              [disabled]="analyzing()"
-              class="px-3 py-1.5 bg-accent hover:bg-accent-dim text-on-accent font-medium rounded-lg text-xs transition-colors disabled:opacity-50"
-            >
-              {{ analyzing() ? t('detail.analyzing') : t('detail.analyze_btn') }}
-            </button>
-          </div>
-
-          <!-- Pending signals -->
-          @if (pendingSignals().length === 0) {
-            <p class="text-text-secondary text-sm py-4 text-center">{{ t('detail.pending_empty') }}</p>
-          } @else {
-            <div class="space-y-3 mb-4">
-              @for (sig of pendingSignals(); track sig.id) {
-                <div class="border border-elevated rounded-lg p-4">
-                  <div class="flex items-center gap-2 mb-2">
-                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full" [class]="actionClass(sig.action)">
-                      {{ sig.action }}
-                    </span>
-                    <span class="font-mono font-semibold text-text-primary text-sm">{{ sig.asset }}</span>
-                  </div>
-                  <div class="grid grid-cols-2 gap-2 text-xs mb-2">
-                    <div>
-                      <span class="text-text-secondary">{{ t('detail.signal_conviction') }}: </span>
-                      <span class="text-text-primary font-mono">{{ sig.conviction | number:'1.0-0' }}%</span>
+        <!-- Draggable panels -->
+        <div cdkDropList (cdkDropListDropped)="onPanelDrop($event)" class="space-y-6">
+          @for (panel of panelOrder(); track panel) {
+            <div cdkDrag>
+              <div *cdkDragPlaceholder class="bg-surface border-2 border-dashed border-accent/40 rounded-lg min-h-[120px]"></div>
+              @switch (panel) {
+                <!-- Balance chart -->
+                @case ('chart') {
+                  <div class="bg-surface border border-elevated rounded-lg p-5">
+                    <div class="flex items-center gap-2 mb-3">
+                      <button
+                        cdkDragHandle
+                        type="button"
+                        class="cursor-grab active:cursor-grabbing text-text-secondary/40 hover:text-text-secondary transition-colors"
+                        [title]="t('common.drag_handle')"
+                      >
+                        <svg class="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+                          <circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
+                          <circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>
+                          <circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/>
+                        </svg>
+                      </button>
+                      <h2 class="text-sm font-semibold text-text-primary">{{ t('detail.chart_title') }}</h2>
                     </div>
-                    <div>
-                      <span class="text-text-secondary">{{ t('detail.signal_risk') }}: </span>
-                      <span class="text-text-primary font-mono">{{ sig.risk_score | number:'1.1-1' }}</span>
-                    </div>
-                  </div>
-                  <p class="text-xs text-text-secondary mb-3 leading-relaxed">{{ sig.reasoning }}</p>
-                  <div class="flex gap-2">
-                    <button
-                      (click)="executeSignal(sig.id)"
-                      [disabled]="executing()"
-                      class="px-3 py-1 bg-success/20 hover:bg-success/30 text-success font-medium rounded text-xs transition-colors disabled:opacity-50"
-                    >
-                      {{ executing() ? t('detail.executing') : t('detail.execute_btn') }}
-                    </button>
-                    <button
-                      (click)="skipSignal(sig.id)"
-                      [disabled]="executing()"
-                      class="px-3 py-1 bg-muted-dim hover:bg-muted/30 text-muted font-medium rounded text-xs transition-colors disabled:opacity-50"
-                    >
-                      {{ t('detail.skip_btn') }}
-                    </button>
-                  </div>
-                </div>
-              }
-            </div>
-          }
-
-          <!-- Signal history -->
-          @if (historySignals().length > 0) {
-            <details class="mt-2">
-              <summary class="text-xs text-text-secondary cursor-pointer hover:text-text-primary">
-                {{ t('detail.signal_history') }} ({{ historySignals().length }})
-              </summary>
-              <div class="mt-2 space-y-2">
-                @for (sig of historySignals(); track sig.id) {
-                  <div class="flex items-center gap-2 text-xs border border-elevated rounded p-2 opacity-70">
-                    <span class="px-2 py-0.5 rounded-full" [class]="actionClass(sig.action)">{{ sig.action }}</span>
-                    <span class="font-mono text-text-primary">{{ sig.asset }}</span>
-                    <span class="ml-auto px-2 py-0.5 rounded-full" [class]="sig.action_taken === 'executed' ? 'bg-success-dim text-success' : 'bg-muted-dim text-muted'">
-                      {{ sig.action_taken === 'executed' ? t('detail.signal_executed') : t('detail.signal_skipped') }}
-                    </span>
+                    @if (trades().length === 0) {
+                      <div class="flex items-center justify-center h-[320px] text-text-secondary text-sm">
+                        {{ t('detail.chart_empty') }}
+                      </div>
+                    } @else {
+                      <div echarts [options]="chartOptions()" class="h-[320px]"></div>
+                    }
                   </div>
                 }
-              </div>
-            </details>
-          }
-        </div>
 
-        <!-- Positions -->
-        <div class="bg-surface border border-elevated rounded-lg p-5 mb-6">
-          <h2 class="text-sm font-semibold text-text-primary mb-4">{{ t('detail.positions_title') }}</h2>
-          @if (openPositions().length === 0) {
-            <p class="text-text-secondary text-sm py-4 text-center">{{ t('detail.positions_empty') }}</p>
-          } @else {
-            <div class="overflow-x-auto">
-              <table class="w-full text-xs">
-                <thead>
-                  <tr class="text-left text-text-secondary border-b border-elevated">
-                    <th class="pb-2 pr-4">{{ t('detail.pos_asset') }}</th>
-                    <th class="pb-2 pr-4 text-right">{{ t('detail.pos_quantity') }}</th>
-                    <th class="pb-2 pr-4 text-right">{{ t('detail.pos_avg_price') }}</th>
-                    <th class="pb-2 pr-4 text-right">{{ t('detail.pos_cost_basis') }}</th>
-                    <th class="pb-2 pr-4 text-right">{{ t('detail.pos_pnl') }}</th>
-                    <th class="pb-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (pos of openPositions(); track pos.id) {
-                    <tr class="border-b border-elevated/50">
-                      <td class="py-2 pr-4 font-mono font-semibold text-text-primary">{{ pos.asset }}</td>
-                      <td class="py-2 pr-4 text-right font-mono text-text-primary">{{ pos.quantity | number:'1.2-4' }}</td>
-                      <td class="py-2 pr-4 text-right font-mono text-text-primary">\${{ pos.wapp | number:'1.2-2' }}</td>
-                      <td class="py-2 pr-4 text-right font-mono text-text-primary">\${{ pos.total_cost_basis | number:'1.2-2' }}</td>
-                      <td class="py-2 pr-4 text-right font-mono" [class]="pos.realized_pnl >= 0 ? 'text-success' : 'text-danger'">
-                        {{ pos.realized_pnl >= 0 ? '+' : '' }}\${{ pos.realized_pnl | number:'1.2-2' }}
-                      </td>
-                      <td class="py-2 text-right">
+                <!-- AI Signals -->
+                @case ('signals') {
+                  <div class="bg-surface border border-elevated rounded-lg p-5">
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="flex items-center gap-2">
                         <button
-                          (click)="closePosition(pos.id)"
-                          [disabled]="closingPositionId() === pos.id"
-                          class="px-2 py-1 bg-danger/20 hover:bg-danger/30 text-danger font-medium rounded text-xs transition-colors disabled:opacity-50"
+                          cdkDragHandle
+                          type="button"
+                          class="cursor-grab active:cursor-grabbing text-text-secondary/40 hover:text-text-secondary transition-colors"
+                          [title]="t('common.drag_handle')"
                         >
-                          {{ closingPositionId() === pos.id ? t('detail.pos_closing') : t('detail.pos_close') }}
+                          <svg class="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+                            <circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
+                            <circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>
+                            <circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/>
+                          </svg>
                         </button>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
+                        <h2 class="text-sm font-semibold text-text-primary">{{ t('detail.signals_title') }}</h2>
+                      </div>
+                      <button
+                        (click)="analyzeNews()"
+                        [disabled]="analyzing()"
+                        class="px-3 py-1.5 bg-accent hover:bg-accent-dim text-on-accent font-medium rounded-lg text-xs transition-colors disabled:opacity-50"
+                      >
+                        {{ analyzing() ? t('detail.analyzing') : t('detail.analyze_btn') }}
+                      </button>
+                    </div>
 
-          <!-- Closed positions -->
-          @if (closedPositions().length > 0) {
-            <details class="mt-4">
-              <summary class="text-xs text-text-secondary cursor-pointer hover:text-text-primary">
-                {{ t('detail.closed_positions') }} ({{ closedPositions().length }})
-              </summary>
-              <div class="mt-2 overflow-x-auto">
-                <table class="w-full text-xs">
-                  <thead>
-                    <tr class="text-left text-text-secondary border-b border-elevated">
-                      <th class="pb-2 pr-4">{{ t('detail.pos_asset') }}</th>
-                      <th class="pb-2 pr-4 text-right">{{ t('detail.pos_quantity') }}</th>
-                      <th class="pb-2 pr-4 text-right">{{ t('detail.pos_avg_price') }}</th>
-                      <th class="pb-2 pr-4 text-right">{{ t('detail.pos_cost_basis') }}</th>
-                      <th class="pb-2 text-right">{{ t('detail.pos_pnl') }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (pos of closedPositions(); track pos.id) {
-                      <tr class="border-b border-elevated/50 opacity-60">
-                        <td class="py-2 pr-4 font-mono text-text-primary">{{ pos.asset }}</td>
-                        <td class="py-2 pr-4 text-right font-mono text-text-primary">{{ pos.quantity | number:'1.2-4' }}</td>
-                        <td class="py-2 pr-4 text-right font-mono text-text-primary">\${{ pos.wapp | number:'1.2-2' }}</td>
-                        <td class="py-2 pr-4 text-right font-mono text-text-primary">\${{ pos.total_cost_basis | number:'1.2-2' }}</td>
-                        <td class="py-2 text-right font-mono" [class]="pos.realized_pnl >= 0 ? 'text-success' : 'text-danger'">
-                          {{ pos.realized_pnl >= 0 ? '+' : '' }}\${{ pos.realized_pnl | number:'1.2-2' }}
-                        </td>
-                      </tr>
+                    <!-- Pending signals -->
+                    @if (pendingSignals().length === 0) {
+                      <p class="text-text-secondary text-sm py-4 text-center">{{ t('detail.pending_empty') }}</p>
+                    } @else {
+                      <div class="space-y-3 mb-4">
+                        @for (sig of pendingSignals(); track sig.id) {
+                          <div class="border border-elevated rounded-lg p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                              <span class="px-2 py-0.5 text-xs font-semibold rounded-full" [class]="actionClass(sig.action)">
+                                {{ sig.action }}
+                              </span>
+                              <span class="font-mono font-semibold text-text-primary text-sm">{{ sig.asset }}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs mb-2">
+                              <div>
+                                <span class="text-text-secondary">{{ t('detail.signal_conviction') }}: </span>
+                                <span class="text-text-primary font-mono">{{ sig.conviction | number:'1.0-0' }}%</span>
+                              </div>
+                              <div>
+                                <span class="text-text-secondary">{{ t('detail.signal_risk') }}: </span>
+                                <span class="text-text-primary font-mono">{{ sig.risk_score | number:'1.1-1' }}</span>
+                              </div>
+                            </div>
+                            <p class="text-xs text-text-secondary mb-3 leading-relaxed">{{ sig.reasoning }}</p>
+                            <div class="flex gap-2">
+                              <button
+                                (click)="executeSignal(sig.id)"
+                                [disabled]="executing()"
+                                class="px-3 py-1 bg-success/20 hover:bg-success/30 text-success font-medium rounded text-xs transition-colors disabled:opacity-50"
+                              >
+                                {{ executing() ? t('detail.executing') : t('detail.execute_btn') }}
+                              </button>
+                              <button
+                                (click)="skipSignal(sig.id)"
+                                [disabled]="executing()"
+                                class="px-3 py-1 bg-muted-dim hover:bg-muted/30 text-muted font-medium rounded text-xs transition-colors disabled:opacity-50"
+                              >
+                                {{ t('detail.skip_btn') }}
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      </div>
                     }
-                  </tbody>
-                </table>
-              </div>
-            </details>
-          }
-        </div>
 
-        <!-- Trade History -->
-        <div class="bg-surface border border-elevated rounded-lg p-5">
-          <h2 class="text-sm font-semibold text-text-primary mb-4">{{ t('detail.trades_title') }}</h2>
-          @if (trades().length === 0) {
-            <p class="text-text-secondary text-sm py-4 text-center">{{ t('detail.trades_empty') }}</p>
-          } @else {
-            <div class="overflow-x-auto">
-              <table class="w-full text-xs">
-                <thead>
-                  <tr class="text-left text-text-secondary border-b border-elevated">
-                    <th class="pb-2 pr-3">{{ t('detail.trade_date') }}</th>
-                    <th class="pb-2 pr-3">{{ t('detail.trade_side') }}</th>
-                    <th class="pb-2 pr-3">{{ t('detail.trade_asset') }}</th>
-                    <th class="pb-2 pr-3 text-right">{{ t('detail.trade_qty') }}</th>
-                    <th class="pb-2 pr-3 text-right">{{ t('detail.trade_market') }}</th>
-                    <th class="pb-2 pr-3 text-right">{{ t('detail.trade_exec') }}</th>
-                    <th class="pb-2 pr-3 text-right">{{ t('detail.trade_slippage') }}</th>
-                    <th class="pb-2 pr-3 text-right">{{ t('detail.trade_fee') }}</th>
-                    <th class="pb-2 pr-3 text-right">{{ t('detail.trade_total') }}</th>
-                    <th class="pb-2 text-right">{{ t('detail.trade_pnl') }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (tr of sortedTrades(); track tr.id) {
-                    <tr class="border-b border-elevated/50">
-                      <td class="py-2 pr-3 font-mono text-text-secondary">{{ tr.created_at | date:'short' }}</td>
-                      <td class="py-2 pr-3">
-                        <span class="px-1.5 py-0.5 rounded text-xs font-semibold" [class]="tr.side === 'BUY' ? 'bg-success-dim text-success' : 'bg-danger-dim text-danger'">
-                          {{ tr.side }}
-                        </span>
-                      </td>
-                      <td class="py-2 pr-3 font-mono font-semibold text-text-primary">{{ tr.asset }}</td>
-                      <td class="py-2 pr-3 text-right font-mono text-text-primary">{{ tr.quantity | number:'1.2-4' }}</td>
-                      <td class="py-2 pr-3 text-right font-mono text-text-primary">\${{ tr.market_price | number:'1.2-2' }}</td>
-                      <td class="py-2 pr-3 text-right font-mono text-text-primary">\${{ tr.execution_price | number:'1.2-2' }}</td>
-                      <td class="py-2 pr-3 text-right font-mono text-text-secondary">{{ tr.slippage_factor | percent:'1.2-2' }}</td>
-                      <td class="py-2 pr-3 text-right font-mono text-text-secondary">\${{ tr.fee | number:'1.2-2' }}</td>
-                      <td class="py-2 pr-3 text-right font-mono text-text-primary">\${{ tr.total_cost | number:'1.2-2' }}</td>
-                      <td class="py-2 text-right font-mono" [class]="tr.realized_pnl >= 0 ? 'text-success' : 'text-danger'">
-                        {{ tr.realized_pnl !== 0 ? (tr.realized_pnl >= 0 ? '+' : '') : '' }}\${{ tr.realized_pnl | number:'1.2-2' }}
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
+                    <!-- Signal history -->
+                    @if (historySignals().length > 0) {
+                      <details class="mt-2">
+                        <summary class="text-xs text-text-secondary cursor-pointer hover:text-text-primary">
+                          {{ t('detail.signal_history') }} ({{ historySignals().length }})
+                        </summary>
+                        <div class="mt-2 space-y-2">
+                          @for (sig of historySignals(); track sig.id) {
+                            <div class="flex items-center gap-2 text-xs border border-elevated rounded p-2 opacity-70">
+                              <span class="px-2 py-0.5 rounded-full" [class]="actionClass(sig.action)">{{ sig.action }}</span>
+                              <span class="font-mono text-text-primary">{{ sig.asset }}</span>
+                              <span class="ml-auto px-2 py-0.5 rounded-full" [class]="sig.action_taken === 'executed' ? 'bg-success-dim text-success' : 'bg-muted-dim text-muted'">
+                                {{ sig.action_taken === 'executed' ? t('detail.signal_executed') : t('detail.signal_skipped') }}
+                              </span>
+                            </div>
+                          }
+                        </div>
+                      </details>
+                    }
+                  </div>
+                }
+
+                <!-- Positions -->
+                @case ('positions') {
+                  <div class="bg-surface border border-elevated rounded-lg p-5">
+                    <div class="flex items-center gap-2 mb-4">
+                      <button
+                        cdkDragHandle
+                        type="button"
+                        class="cursor-grab active:cursor-grabbing text-text-secondary/40 hover:text-text-secondary transition-colors"
+                        [title]="t('common.drag_handle')"
+                      >
+                        <svg class="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+                          <circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
+                          <circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>
+                          <circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/>
+                        </svg>
+                      </button>
+                      <h2 class="text-sm font-semibold text-text-primary">{{ t('detail.positions_title') }}</h2>
+                    </div>
+                    @if (openPositions().length === 0) {
+                      <p class="text-text-secondary text-sm py-4 text-center">{{ t('detail.positions_empty') }}</p>
+                    } @else {
+                      <div class="overflow-x-auto">
+                        <table class="w-full text-xs">
+                          <thead>
+                            <tr class="text-left text-text-secondary border-b border-elevated">
+                              <th class="pb-2 pr-4">{{ t('detail.pos_asset') }}</th>
+                              <th class="pb-2 pr-4 text-right">{{ t('detail.pos_quantity') }}</th>
+                              <th class="pb-2 pr-4 text-right">{{ t('detail.pos_avg_price') }}</th>
+                              <th class="pb-2 pr-4 text-right">{{ t('detail.pos_cost_basis') }}</th>
+                              <th class="pb-2 pr-4 text-right">{{ t('detail.pos_pnl') }}</th>
+                              <th class="pb-2"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (pos of openPositions(); track pos.id) {
+                              <tr class="border-b border-elevated/50">
+                                <td class="py-2 pr-4 font-mono font-semibold text-text-primary">{{ pos.asset }}</td>
+                                <td class="py-2 pr-4 text-right font-mono text-text-primary">{{ pos.quantity | number:'1.2-4' }}</td>
+                                <td class="py-2 pr-4 text-right font-mono text-text-primary">\${{ pos.wapp | number:'1.2-2' }}</td>
+                                <td class="py-2 pr-4 text-right font-mono text-text-primary">\${{ pos.total_cost_basis | number:'1.2-2' }}</td>
+                                <td class="py-2 pr-4 text-right font-mono" [class]="pos.realized_pnl >= 0 ? 'text-success' : 'text-danger'">
+                                  {{ pos.realized_pnl >= 0 ? '+' : '' }}\${{ pos.realized_pnl | number:'1.2-2' }}
+                                </td>
+                                <td class="py-2 text-right">
+                                  <button
+                                    (click)="closePosition(pos.id)"
+                                    [disabled]="closingPositionId() === pos.id"
+                                    class="px-2 py-1 bg-danger/20 hover:bg-danger/30 text-danger font-medium rounded text-xs transition-colors disabled:opacity-50"
+                                  >
+                                    {{ closingPositionId() === pos.id ? t('detail.pos_closing') : t('detail.pos_close') }}
+                                  </button>
+                                </td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    }
+
+                    <!-- Closed positions -->
+                    @if (closedPositions().length > 0) {
+                      <details class="mt-4">
+                        <summary class="text-xs text-text-secondary cursor-pointer hover:text-text-primary">
+                          {{ t('detail.closed_positions') }} ({{ closedPositions().length }})
+                        </summary>
+                        <div class="mt-2 overflow-x-auto">
+                          <table class="w-full text-xs">
+                            <thead>
+                              <tr class="text-left text-text-secondary border-b border-elevated">
+                                <th class="pb-2 pr-4">{{ t('detail.pos_asset') }}</th>
+                                <th class="pb-2 pr-4 text-right">{{ t('detail.pos_quantity') }}</th>
+                                <th class="pb-2 pr-4 text-right">{{ t('detail.pos_avg_price') }}</th>
+                                <th class="pb-2 pr-4 text-right">{{ t('detail.pos_cost_basis') }}</th>
+                                <th class="pb-2 text-right">{{ t('detail.pos_pnl') }}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (pos of closedPositions(); track pos.id) {
+                                <tr class="border-b border-elevated/50 opacity-60">
+                                  <td class="py-2 pr-4 font-mono text-text-primary">{{ pos.asset }}</td>
+                                  <td class="py-2 pr-4 text-right font-mono text-text-primary">{{ pos.quantity | number:'1.2-4' }}</td>
+                                  <td class="py-2 pr-4 text-right font-mono text-text-primary">\${{ pos.wapp | number:'1.2-2' }}</td>
+                                  <td class="py-2 pr-4 text-right font-mono text-text-primary">\${{ pos.total_cost_basis | number:'1.2-2' }}</td>
+                                  <td class="py-2 text-right font-mono" [class]="pos.realized_pnl >= 0 ? 'text-success' : 'text-danger'">
+                                    {{ pos.realized_pnl >= 0 ? '+' : '' }}\${{ pos.realized_pnl | number:'1.2-2' }}
+                                  </td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      </details>
+                    }
+                  </div>
+                }
+
+                <!-- Trade History -->
+                @case ('trades') {
+                  <div class="bg-surface border border-elevated rounded-lg p-5">
+                    <div class="flex items-center gap-2 mb-4">
+                      <button
+                        cdkDragHandle
+                        type="button"
+                        class="cursor-grab active:cursor-grabbing text-text-secondary/40 hover:text-text-secondary transition-colors"
+                        [title]="t('common.drag_handle')"
+                      >
+                        <svg class="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+                          <circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
+                          <circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>
+                          <circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/>
+                        </svg>
+                      </button>
+                      <h2 class="text-sm font-semibold text-text-primary">{{ t('detail.trades_title') }}</h2>
+                    </div>
+                    @if (trades().length === 0) {
+                      <p class="text-text-secondary text-sm py-4 text-center">{{ t('detail.trades_empty') }}</p>
+                    } @else {
+                      <div class="overflow-x-auto">
+                        <table class="w-full text-xs">
+                          <thead>
+                            <tr class="text-left text-text-secondary border-b border-elevated">
+                              <th class="pb-2 pr-3">{{ t('detail.trade_date') }}</th>
+                              <th class="pb-2 pr-3">{{ t('detail.trade_side') }}</th>
+                              <th class="pb-2 pr-3">{{ t('detail.trade_asset') }}</th>
+                              <th class="pb-2 pr-3 text-right">{{ t('detail.trade_qty') }}</th>
+                              <th class="pb-2 pr-3 text-right">{{ t('detail.trade_market') }}</th>
+                              <th class="pb-2 pr-3 text-right">{{ t('detail.trade_exec') }}</th>
+                              <th class="pb-2 pr-3 text-right">{{ t('detail.trade_slippage') }}</th>
+                              <th class="pb-2 pr-3 text-right">{{ t('detail.trade_fee') }}</th>
+                              <th class="pb-2 pr-3 text-right">{{ t('detail.trade_total') }}</th>
+                              <th class="pb-2 text-right">{{ t('detail.trade_pnl') }}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (tr of sortedTrades(); track tr.id) {
+                              <tr class="border-b border-elevated/50">
+                                <td class="py-2 pr-3 font-mono text-text-secondary">{{ tr.created_at | date:'short' }}</td>
+                                <td class="py-2 pr-3">
+                                  <span class="px-1.5 py-0.5 rounded text-xs font-semibold" [class]="tr.side === 'BUY' ? 'bg-success-dim text-success' : 'bg-danger-dim text-danger'">
+                                    {{ tr.side }}
+                                  </span>
+                                </td>
+                                <td class="py-2 pr-3 font-mono font-semibold text-text-primary">{{ tr.asset }}</td>
+                                <td class="py-2 pr-3 text-right font-mono text-text-primary">{{ tr.quantity | number:'1.2-4' }}</td>
+                                <td class="py-2 pr-3 text-right font-mono text-text-primary">\${{ tr.market_price | number:'1.2-2' }}</td>
+                                <td class="py-2 pr-3 text-right font-mono text-text-primary">\${{ tr.execution_price | number:'1.2-2' }}</td>
+                                <td class="py-2 pr-3 text-right font-mono text-text-secondary">{{ tr.slippage_factor | percent:'1.2-2' }}</td>
+                                <td class="py-2 pr-3 text-right font-mono text-text-secondary">\${{ tr.fee | number:'1.2-2' }}</td>
+                                <td class="py-2 pr-3 text-right font-mono text-text-primary">\${{ tr.total_cost | number:'1.2-2' }}</td>
+                                <td class="py-2 text-right font-mono" [class]="tr.realized_pnl >= 0 ? 'text-success' : 'text-danger'">
+                                  {{ tr.realized_pnl !== 0 ? (tr.realized_pnl >= 0 ? '+' : '') : '' }}\${{ tr.realized_pnl | number:'1.2-2' }}
+                                </td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    }
+                  </div>
+                }
+              }
             </div>
           }
         </div>
@@ -299,6 +375,7 @@ export class SessionDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private exec = inject(ExecutionService);
   private themeService = inject(ThemeService);
+  private widgetOrder = inject(WidgetOrderService);
 
   session = signal<SessionResponse | null>(null);
   trades = signal<TradeResponse[]>([]);
@@ -308,6 +385,9 @@ export class SessionDetailComponent implements OnInit {
   analyzing = signal(false);
   executing = signal(false);
   closingPositionId = signal<number | null>(null);
+  panelOrder = signal<WidgetPanelId[]>(['chart', 'signals', 'positions', 'trades']);
+
+  private sessionId = 0;
 
   pnl = computed(() => {
     const s = this.session();
@@ -389,8 +469,9 @@ export class SessionDetailComponent implements OnInit {
   }
 
   ngOnInit() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadAll(id);
+    this.sessionId = Number(this.route.snapshot.paramMap.get('id'));
+    this.panelOrder.set(this.widgetOrder.getPanelOrder(this.sessionId));
+    this.loadAll(this.sessionId);
   }
 
   private loadAll(id: number) {
@@ -465,6 +546,13 @@ export class SessionDetailComponent implements OnInit {
       },
       error: () => this.closingPositionId.set(null),
     });
+  }
+
+  onPanelDrop(event: CdkDragDrop<void>) {
+    const reordered = [...this.panelOrder()];
+    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+    this.panelOrder.set(reordered);
+    this.widgetOrder.savePanelOrder(this.sessionId, reordered);
   }
 
   riskClass(risk: string): string {

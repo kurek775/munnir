@@ -52,7 +52,8 @@
     "cancel": "Zrušit",
     "delete": "Smazat",
     "confirm": "Potvrdit",
-    "confirm_delete": "Opravdu chcete smazat tuto relaci?"
+    "confirm_delete": "Opravdu chcete smazat tuto relaci?",
+    "drag_handle": "Přetažením změníte pořadí"
   },
   "detail": {
     "back": "Zpět na relace",
