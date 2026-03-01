@@ -1,0 +1,28 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: munnir-api/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./munnir-api/app:/app/app
+      - ./cpp_engine:/app/cpp_engine
+      - sqlite-data:/app/data
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/munnir.db
+
+  ui:
+    build:
+      context: .
+      dockerfile: munnir-ui/Dockerfile
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./munnir-ui/src:/app/src
+      - ./munnir-ui/public:/app/public
+    depends_on:
+      - api
+
+volumes:
+  sqlite-data:

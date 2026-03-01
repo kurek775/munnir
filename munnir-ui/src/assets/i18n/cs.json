@@ -1,0 +1,12 @@
+{
+  "hello": {
+    "title": "Munnir Test Pipeline",
+    "subtitle": "Angular -> FastAPI -> C++ -> SQLite",
+    "result_label": "Výsledek C++ enginu",
+    "message_label": "Zpráva z API",
+    "timestamp_label": "Časová značka",
+    "loading": "Volám pipeline…",
+    "error": "Něco se pokazilo",
+    "language": "Jazyk"
+  }
+}

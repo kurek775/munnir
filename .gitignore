@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+*.egg
+.venv/
+venv/
+.uv/
+
+# Node / Angular
+node_modules/
+.angular/
+.pnp.*
+
+# C++ build artifacts
+cpp_engine/build/
+*.o
+*.so
+*.pyd
+*.dylib
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+credentials.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# SQLite databases
+*.db
+*.sqlite3
+
+# Docker
+docker-compose.override.yml
+
+# Coverage & test output
+htmlcov/
+.coverage
+.pytest_cache/
+coverage/
