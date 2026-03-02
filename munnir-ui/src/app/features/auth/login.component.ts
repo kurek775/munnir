@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-login',
@@ -13,7 +14,7 @@ import { AuthService } from '../../core/services/auth.service';
     <div class="min-h-screen flex items-center justify-center bg-base p-8">
       <div class="max-w-sm w-full space-y-8" *transloco="let t">
         <div class="text-center">
-          <img src="assets/logo.svg" [attr.alt]="t('app.logo_alt')" class="h-14 mx-auto" />
+          <img [src]="theme.logoSrc()" [attr.alt]="t('app.logo_alt')" class="h-14 mx-auto" />
           <h1 class="text-xl font-bold text-text-primary mt-4">{{ t('auth.login') }}</h1>
         </div>
 
@@ -68,6 +69,7 @@ export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
   private transloco = inject(TranslocoService);
+  protected theme = inject(ThemeService);
 
   username = '';
   password = '';

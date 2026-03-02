@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@ang
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ApiService } from '../../core/services/api.service';
 import { HelloResponse } from '../../core/models/hello.model';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-hello',
@@ -14,7 +15,7 @@ import { HelloResponse } from '../../core/models/hello.model';
 
         <!-- Logo -->
         <div class="text-center" *transloco="let t">
-          <img src="assets/logo.svg" [attr.alt]="t('app.logo_alt')" class="h-14 mx-auto" />
+          <img [src]="theme.logoSrc()" [attr.alt]="t('app.logo_alt')" class="h-14 mx-auto" />
           <p class="text-text-secondary mt-4 text-xs tracking-widest uppercase">
             {{ t('hello.subtitle') }}
           </p>
@@ -73,6 +74,7 @@ import { HelloResponse } from '../../core/models/hello.model';
 export class HelloComponent implements OnInit {
   private api = inject(ApiService);
   private transloco = inject(TranslocoService);
+  protected theme = inject(ThemeService);
 
   data = signal<HelloResponse | null>(null);
   loading = signal(true);

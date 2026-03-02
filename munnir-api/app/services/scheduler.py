@@ -67,10 +67,12 @@ def _run_autopilot_cycles() -> None:
             await ingest_news(db)
 
             now = datetime.now(timezone.utc)
-            interval = settings.AUTOPILOT_INTERVAL_MINUTES * 60  # seconds
 
             for ts in sessions:
                 try:
+                    # Per-session interval (falls back to global setting)
+                    interval = (ts.auto_pilot_interval_minutes or settings.AUTOPILOT_INTERVAL_MINUTES) * 60
+
                     # Debounce: skip if last cycle was too recent
                     if ts.last_auto_cycle_at:
                         elapsed = (now - ts.last_auto_cycle_at).total_seconds()
@@ -122,10 +124,12 @@ def create_news_scheduler() -> BackgroundScheduler:
     )
 
     if settings.AUTOPILOT_ENABLED:
+        # Tick every 5 min (minimum per-session interval); per-session
+        # debouncing in _run_autopilot_cycles controls actual execution.
         scheduler.add_job(
             _run_autopilot_cycles,
             "interval",
-            minutes=settings.AUTOPILOT_INTERVAL_MINUTES,
+            minutes=5,
             id="autopilot_cycles",
             replace_existing=True,
         )

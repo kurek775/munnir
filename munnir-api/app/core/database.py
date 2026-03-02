@@ -27,6 +27,7 @@ _MIGRATIONS: list[tuple[str, str, str]] = [
     # (table, column, ALTER TABLE statement)
     ("trading_sessions", "auto_pilot", "ALTER TABLE trading_sessions ADD COLUMN auto_pilot BOOLEAN DEFAULT 0 NOT NULL"),
     ("trading_sessions", "last_auto_cycle_at", "ALTER TABLE trading_sessions ADD COLUMN last_auto_cycle_at DATETIME"),
+    ("trading_sessions", "auto_pilot_interval_minutes", "ALTER TABLE trading_sessions ADD COLUMN auto_pilot_interval_minutes INTEGER DEFAULT 15 NOT NULL"),
 ]
 
 

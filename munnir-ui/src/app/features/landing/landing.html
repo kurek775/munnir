@@ -1,0 +1,285 @@
+<div class="landing" *transloco="let t">
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <img [src]="theme.logoSrc()" alt="Munnir" class="nav-logo" />
+        <span class="nav-name">Munnir</span>
+      </div>
+      <div class="nav-actions">
+        <!-- Language toggle -->
+        <div class="flex gap-1">
+          <button
+            class="px-2 py-1 text-xs font-medium rounded transition-colors"
+            [class]="getActiveLang() === 'en'
+              ? 'bg-accent text-on-accent'
+              : 'bg-elevated text-text-secondary hover:text-text-primary'"
+            (click)="switchLang('en')"
+          >EN</button>
+          <button
+            class="px-2 py-1 text-xs font-medium rounded transition-colors"
+            [class]="getActiveLang() === 'cs'
+              ? 'bg-accent text-on-accent'
+              : 'bg-elevated text-text-secondary hover:text-text-primary'"
+            (click)="switchLang('cs')"
+          >CS</button>
+        </div>
+        <button
+          (click)="theme.toggle()"
+          class="theme-btn"
+          [title]="t('nav.theme')"
+        >
+          @if (theme.theme() === 'dark') {
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
+            </svg>
+          } @else {
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+            </svg>
+          }
+        </button>
+        <a routerLink="/login" class="nav-link">{{ t('auth.login') }}</a>
+        <a routerLink="/register" class="nav-cta">{{ t('auth.register') }}</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-content">
+      <div class="hero-badge">{{ t('landing.badge') }}</div>
+      <h1 class="hero-title">
+        {{ t('landing.hero_title_1') }}
+        <span class="text-accent">{{ t('landing.hero_title_highlight') }}</span>
+      </h1>
+      <p class="hero-subtitle">{{ t('landing.hero_subtitle') }}</p>
+      <div class="hero-actions">
+        <a routerLink="/register" class="btn-primary">{{ t('landing.cta_start') }}</a>
+        <a routerLink="/login" class="btn-secondary">{{ t('landing.cta_login') }}</a>
+      </div>
+
+      <!-- Live chart preview -->
+      <div class="hero-chart">
+        <div class="chart-header">
+          <div class="chart-label">{{ t('landing.chart_portfolio') }}</div>
+          <div class="chart-value">$12,847.30 <span class="chart-gain">+28.5%</span></div>
+        </div>
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
+          <defs>
+            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--color-accent)" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="var(--color-accent)" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path [attr.d]="balanceAreaPath" fill="url(#chartGrad)"/>
+          <path [attr.d]="balancePath" fill="none" stroke="var(--color-accent)" stroke-width="0.8" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ticker -->
+  <div class="ticker-bar">
+    <div class="ticker-track">
+      @for (item of tickerItems; track item.symbol) {
+        <div class="ticker-item">
+          <span class="ticker-symbol">{{ item.symbol }}</span>
+          <span class="ticker-price">{{ item.price }}</span>
+          <span [class]="item.change.startsWith('+') ? 'ticker-up' : 'ticker-down'">{{ item.change }}</span>
+        </div>
+      }
+      @for (item of tickerItems; track item.symbol) {
+        <div class="ticker-item">
+          <span class="ticker-symbol">{{ item.symbol }}</span>
+          <span class="ticker-price">{{ item.price }}</span>
+          <span [class]="item.change.startsWith('+') ? 'ticker-up' : 'ticker-down'">{{ item.change }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="section-inner">
+      <h2 class="section-title">{{ t('landing.features_title') }}</h2>
+      <p class="section-subtitle">{{ t('landing.features_subtitle') }}</p>
+      <div class="features-grid">
+        <!-- AI Signals -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a4 4 0 014 4c0 1.5-.8 2.8-2 3.5v1h-4v-1c-1.2-.7-2-2-2-3.5a4 4 0 014-4z"/>
+              <path d="M10 14.5h4M11 17h2M9 10.5h6"/>
+              <circle cx="12" cy="21" r="1"/>
+              <path d="M12 18v2"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">{{ t('landing.feature_ai_title') }}</h3>
+          <p class="feature-desc">{{ t('landing.feature_ai_desc') }}</p>
+        </div>
+
+        <!-- Auto-Pilot -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v4m0 12v4M2 12h4m12 0h4"/>
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 5a7 7 0 017 7"/>
+              <path d="M19 12a7 7 0 01-7 7"/>
+              <path d="M12 19a7 7 0 01-7-7"/>
+              <path d="M5 12a7 7 0 017-7"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">{{ t('landing.feature_autopilot_title') }}</h3>
+          <p class="feature-desc">{{ t('landing.feature_autopilot_desc') }}</p>
+        </div>
+
+        <!-- C++ Engine -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">{{ t('landing.feature_engine_title') }}</h3>
+          <p class="feature-desc">{{ t('landing.feature_engine_desc') }}</p>
+        </div>
+
+        <!-- Risk Management -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">{{ t('landing.feature_risk_title') }}</h3>
+          <p class="feature-desc">{{ t('landing.feature_risk_desc') }}</p>
+        </div>
+
+        <!-- Charts & Analytics -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18"/>
+              <path d="M7 16l4-4 4 4 5-6"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">{{ t('landing.feature_charts_title') }}</h3>
+          <p class="feature-desc">{{ t('landing.feature_charts_desc') }}</p>
+        </div>
+
+        <!-- Transparency -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">{{ t('landing.feature_transparency_title') }}</h3>
+          <p class="feature-desc">{{ t('landing.feature_transparency_desc') }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="how-it-works">
+    <div class="section-inner">
+      <h2 class="section-title">{{ t('landing.how_title') }}</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3 class="step-title">{{ t('landing.step_1_title') }}</h3>
+          <p class="step-desc">{{ t('landing.step_1_desc') }}</p>
+        </div>
+        <div class="step-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3 class="step-title">{{ t('landing.step_2_title') }}</h3>
+          <p class="step-desc">{{ t('landing.step_2_desc') }}</p>
+        </div>
+        <div class="step-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3 class="step-title">{{ t('landing.step_3_title') }}</h3>
+          <p class="step-desc">{{ t('landing.step_3_desc') }}</p>
+        </div>
+        <div class="step-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3 class="step-title">{{ t('landing.step_4_title') }}</h3>
+          <p class="step-desc">{{ t('landing.step_4_desc') }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech stack -->
+  <section class="tech-stack">
+    <div class="section-inner">
+      <h2 class="section-title">{{ t('landing.tech_title') }}</h2>
+      <p class="section-subtitle">{{ t('landing.tech_subtitle') }}</p>
+      <div class="tech-grid">
+        <div class="tech-item">
+          <div class="tech-label">Frontend</div>
+          <div class="tech-value">Angular 21</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-label">Styling</div>
+          <div class="tech-value">Tailwind CSS v4</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-label">Backend</div>
+          <div class="tech-value">FastAPI</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-label">AI</div>
+          <div class="tech-value">Gemini 2.0 Flash</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-label">Engine</div>
+          <div class="tech-value">C++20 / pybind11</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-label">Database</div>
+          <div class="tech-value">SQLite + Alembic</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="final-cta">
+    <div class="section-inner">
+      <h2 class="cta-title">{{ t('landing.final_cta_title') }}</h2>
+      <p class="cta-subtitle">{{ t('landing.final_cta_subtitle') }}</p>
+      <a routerLink="/register" class="btn-primary btn-lg">{{ t('landing.cta_start') }}</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img [src]="theme.logoSrc()" alt="Munnir" class="footer-logo" />
+        <span class="footer-tagline">{{ t('landing.footer_tagline') }}</span>
+      </div>
+      <div class="footer-disclaimer">{{ t('landing.footer_disclaimer') }}</div>
+    </div>
+  </footer>
+</div>

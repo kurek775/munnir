@@ -61,6 +61,8 @@ async def update_trading_session(
         session.is_active = data.is_active
     if data.auto_pilot is not None:
         session.auto_pilot = data.auto_pilot
+    if data.auto_pilot_interval_minutes is not None:
+        session.auto_pilot_interval_minutes = data.auto_pilot_interval_minutes
 
     await db.commit()
     await db.refresh(session)

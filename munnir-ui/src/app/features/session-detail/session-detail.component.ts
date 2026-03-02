@@ -67,11 +67,23 @@ echarts.use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, Mark
                 [class]="session()!.auto_pilot ? 'translate-x-4.5' : 'translate-x-0.5'"
               ></span>
             </button>
+            @if (session()!.auto_pilot) {
+              <span class="text-xs text-text-secondary">{{ t('detail.auto_pilot_every') }}</span>
+              <select
+                class="text-xs bg-elevated text-text-primary border border-elevated rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-accent"
+                [value]="session()!.auto_pilot_interval_minutes"
+                (change)="changeInterval($any($event.target).value)"
+              >
+                @for (opt of intervalOptions; track opt.value) {
+                  <option [value]="opt.value" [selected]="opt.value === session()!.auto_pilot_interval_minutes">{{ opt.label }}</option>
+                }
+              </select>
+            }
           </div>
         </div>
         @if (session()!.auto_pilot) {
           <div class="mb-4 px-3 py-2 rounded-lg bg-success-dim text-success text-xs">
-            {{ t('detail.auto_pilot_on') }}
+            {{ t('detail.auto_pilot_on') }} ({{ intervalLabel(session()!.auto_pilot_interval_minutes) }})
           </div>
         }
 
@@ -486,6 +498,17 @@ export class SessionDetailComponent implements OnInit {
   autoPilotPending = signal(false);
   panelOrder = signal<WidgetPanelId[]>(['chart', 'signals', 'positions', 'trades']);
 
+  intervalOptions = [
+    { value: 5, label: '5 min' },
+    { value: 15, label: '15 min' },
+    { value: 30, label: '30 min' },
+    { value: 60, label: '1 hour' },
+    { value: 120, label: '2 hours' },
+    { value: 240, label: '4 hours' },
+    { value: 480, label: '8 hours' },
+    { value: 1440, label: '24 hours' },
+  ];
+
   private sessionId = 0;
 
   pnl = computed(() => {
@@ -680,6 +703,22 @@ export class SessionDetailComponent implements OnInit {
       },
       error: () => this.autoPilotPending.set(false),
     });
+  }
+
+  changeInterval(value: string) {
+    const s = this.session();
+    if (!s) return;
+    const minutes = Number(value);
+    this.sessionService.updateSession(s.id, { auto_pilot_interval_minutes: minutes }).subscribe({
+      next: (updated) => this.session.set(updated),
+    });
+  }
+
+  intervalLabel(minutes: number): string {
+    const opt = this.intervalOptions.find(o => o.value === minutes);
+    if (opt) return opt.label;
+    if (minutes >= 60) return `${minutes / 60}h`;
+    return `${minutes} min`;
   }
 
   onPanelDrop(event: CdkDragDrop<void>) {

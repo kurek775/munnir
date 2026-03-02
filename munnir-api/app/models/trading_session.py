@@ -17,6 +17,9 @@ class TradingSession(Base):
     risk_tolerance: Mapped[str] = mapped_column(String, nullable=False, default="medium")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     auto_pilot: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    auto_pilot_interval_minutes: Mapped[int] = mapped_column(
+        Integer, default=15, server_default="15"
+    )
     last_auto_cycle_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

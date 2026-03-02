@@ -1,4 +1,4 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { ApiService } from './api.service';
 
 @Injectable({ providedIn: 'root' })
@@ -6,13 +6,16 @@ export class ThemeService {
   private api = inject(ApiService);
 
   theme = signal<'dark' | 'light'>(this.loadTheme());
+  logoSrc = computed(() => this.theme() === 'dark' ? 'assets/logo-dark.svg' : 'assets/logo-light.svg');
 
   toggle() {
     const next = this.theme() === 'dark' ? 'light' : 'dark';
     this.theme.set(next);
     localStorage.setItem('theme', next);
     this.applyTheme(next);
-    this.api.patch('/api/v1/users/me', { preferred_theme: next }).subscribe();
+    if (localStorage.getItem('access_token')) {
+      this.api.patch('/api/v1/users/me', { preferred_theme: next }).subscribe();
+    }
   }
 
   init() {

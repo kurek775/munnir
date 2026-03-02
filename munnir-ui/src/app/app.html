@@ -3,7 +3,7 @@
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <!-- Brand -->
       <div class="flex items-center gap-3">
-        <img src="assets/logo.svg" [attr.alt]="t('app.logo_alt')" class="h-7" />
+        <img [src]="theme.logoSrc()" [attr.alt]="t('app.logo_alt')" class="h-7" />
         <span class="font-semibold text-text-primary text-sm tracking-wide">{{ t('app.brand_name') }}</span>
       </div>
 

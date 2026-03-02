@@ -6,6 +6,7 @@ export interface SessionResponse {
   risk_tolerance: string;
   is_active: boolean;
   auto_pilot: boolean;
+  auto_pilot_interval_minutes: number;
   created_at: string;
   updated_at: string;
 }
